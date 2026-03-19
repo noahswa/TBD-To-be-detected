@@ -1,6 +1,8 @@
 # TBD: To Be Detected
 
 EECS 504 Computer Vision course project on still-image distracted driver detection using the State Farm Distracted Driver Detection dataset.
+<img width="640" height="480" alt="image" src="https://github.com/user-attachments/assets/b649ed33-970b-4b4f-b12c-62e056e62512" />
+
 
 ## Overview
 
