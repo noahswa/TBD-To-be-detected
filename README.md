@@ -1,12 +1,14 @@
 # TBD: To Be Detected
 
 EECS 504 Computer Vision course project on still-image distracted driver detection using the State Farm Distracted Driver Detection dataset.
-![output_DEb8oT](https://github.com/user-attachments/assets/a963001a-8e6e-4d91-aabb-f2edf1384dbd)
 
 
 ## Overview
 
 This project studies whether a vision model can detect distracted driving behavior from a single image and which visual regions matter most for that decision. We compare full-image classification against driver-centered crops and tighter crops around the face, hands, and phone. We also compare binary distracted-versus-safe classification with fine-grained multiclass classification and use Grad-CAM to verify whether the model attends to meaningful visual evidence.
+
+![output_DEb8oT](https://github.com/user-attachments/assets/a963001a-8e6e-4d91-aabb-f2edf1384dbd)
+
 
 ## Motivation
 
