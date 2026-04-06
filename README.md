@@ -51,6 +51,40 @@ The training set contains 10 classes (`c0` through `c9`) and subject identifiers
 - Use Grad-CAM to visualize which regions contribute most to each prediction
 - Check whether the model focuses on the driver, hands, and phone instead of irrelevant background cues
 
+## ResNet-50 Baseline (Implemented)
+
+- Script: `train_resnet50_baseline.py`
+- Input format: folder-based classes under `imgs/train` (`c0` to `c9`)
+- Output:
+  - best checkpoint: `outputs/resnet50_baseline/best_resnet50.pt`
+  - training history: `outputs/resnet50_baseline/metrics.json`
+
+### Quick Start
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Run a short smoke test (fast sanity check):
+
+```bash
+python train_resnet50_baseline.py --epochs 1 --batch-size 8 --num-workers 0 --max-train-batches 5 --max-val-batches 2
+```
+
+3. Run full baseline training:
+
+```bash
+python train_resnet50_baseline.py --epochs 8 --batch-size 32
+```
+
+4. Optional: export penultimate-layer features for all `imgs/train` images:
+
+```bash
+python train_resnet50_baseline.py --epochs 8 --save-features outputs/resnet50_baseline/train_features.npz
+```
+
 ## Model Recommendations
 
 ### Primary Model
