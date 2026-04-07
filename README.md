@@ -85,6 +85,33 @@ python train_resnet50_baseline.py --epochs 8 --batch-size 32
 python train_resnet50_baseline.py --epochs 8 --save-features outputs/resnet50_baseline/train_features.npz
 ```
 
+### Grad-CAM Visualization
+
+- Script: `gradcam_resnet50_baseline.py`
+- Default checkpoint: `outputs/resnet50_baseline/best_resnet50.pt`
+- Default output folder: `outputs/resnet50_baseline/gradcam`
+- Output:
+  - Grad-CAM overlay images
+  - prediction summary: `gradcam_summary.json` (new summaries are appended on each run)
+
+Generate a Grad-CAM overlay for one image:
+
+```bash
+python gradcam_resnet50_baseline.py imgs/train/c0/img_100026.jpg
+```
+
+Generate Grad-CAM overlays for a small batch of images from a folder:
+
+```bash
+python gradcam_resnet50_baseline.py --image-dir imgs/test --max-images 10
+```
+
+By default, Grad-CAM is generated for the predicted class. To visualize a specific class, pass a class name or index:
+
+```bash
+python gradcam_resnet50_baseline.py imgs/train/c0/img_100026.jpg --target-class c0
+```
+
 ## Model Recommendations
 
 ### Primary Model
@@ -130,4 +157,3 @@ If successful, this project could inform the design of low-cost driver monitorin
 ## Team
 
 - Team name: **TBD: To Be Detected**
-
