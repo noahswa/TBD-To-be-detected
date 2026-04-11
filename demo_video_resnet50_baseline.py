@@ -9,6 +9,8 @@ import torch.nn as nn
 from PIL import Image, ImageDraw, ImageFont
 from torchvision import models, transforms
 
+from gradcam_resnet50_baseline import GradCAM, make_overlay, parse_target_class
+
 
 CLASS_DESCRIPTIONS = {
     "c0": "normal driving",
@@ -51,6 +53,15 @@ def build_preprocess():
             transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+
+
+def build_display_transform():
+    return transforms.Compose(
+        [
+            transforms.Resize((256, 256)),
+            transforms.CenterCrop(224),
         ]
     )
 
@@ -141,6 +152,8 @@ def render_frame(
     title_font,
     body_font,
     class_font,
+    cam_target_class=None,
+    cam_target_desc="",
 ):
     image_w, image_h = image_size
     frame_w = image_w + panel_width
@@ -174,6 +187,8 @@ def render_frame(
 
     y = draw_text_block(draw, f"Pred: {pred_class} ({pred_desc})", x, y, body_font, (255, 255, 120))
     y = draw_text_block(draw, f"Confidence: {pred_prob:.1%}", x, y, body_font, (255, 255, 120))
+    if cam_target_class is not None and cam_target_class != pred_class:
+        y = draw_text_block(draw, f"Grad-CAM: {cam_target_class} ({cam_target_desc})", x, y, body_font, (255, 180, 120))
 
     y = draw_text_block(draw, "Top-k:", x, y, body_font, (220, 220, 255))
     for class_name, probability in topk_pairs:
@@ -215,11 +230,24 @@ def parse_args():
     parser.add_argument(
         "--output-video",
         type=str,
-        default="outputs/resnet50_baseline/demo_prediction.mp4",
-        help="Output mp4 path.",
+        default=None,
+        help="Optional output mp4 path. Defaults to outputs/resnet50_baseline/demo_prediction.mp4 unless only --gradcam-video is requested.",
     )
     parser.add_argument("--fps", type=int, default=2, help="Video frames per second.")
     parser.add_argument("--topk", type=int, default=3, help="Top-k predictions shown in overlay.")
+    parser.add_argument(
+        "--gradcam-video",
+        type=str,
+        default=None,
+        help="Optional output mp4 path for a second demo video with Grad-CAM overlays.",
+    )
+    parser.add_argument(
+        "--gradcam-target-class",
+        type=str,
+        default=None,
+        help="Class name/index for Grad-CAM. Defaults to the predicted class for each frame.",
+    )
+    parser.add_argument("--gradcam-alpha", type=float, default=0.45, help="Grad-CAM heatmap overlay opacity.")
     parser.add_argument("--device", type=str, default=None, help="Override device: cpu or cuda.")
     parser.add_argument("--width", type=int, default=960, help="Video frame width.")
     parser.add_argument("--height", type=int, default=540, help="Video frame height.")
@@ -235,11 +263,21 @@ def main():
 
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
     checkpoint_path = Path(args.checkpoint)
-    output_video = Path(args.output_video)
-    output_video.parent.mkdir(parents=True, exist_ok=True)
+    default_output_video = Path("outputs/resnet50_baseline/demo_prediction.mp4")
+    output_video = Path(args.output_video) if args.output_video is not None else None
+    gradcam_video = Path(args.gradcam_video) if args.gradcam_video else None
+    save_standard_video = gradcam_video is None or output_video is not None
+    if save_standard_video and output_video is None:
+        output_video = default_output_video
+    if save_standard_video:
+        output_video.parent.mkdir(parents=True, exist_ok=True)
+    if gradcam_video is not None:
+        gradcam_video.parent.mkdir(parents=True, exist_ok=True)
 
     model, class_names = load_checkpoint(checkpoint_path, device)
     preprocess = build_preprocess()
+    display_transform = build_display_transform()
+    gradcam = GradCAM(model, model.layer4[-1]) if gradcam_video is not None else None
 
     image_paths = collect_images(args.images, args.image_dir, args.max_images, args.seed)
     image_size = (args.width, args.height)
@@ -248,14 +286,27 @@ def main():
     class_font = load_font(args.class_font_size, bold=False)
 
     topk = max(1, min(args.topk, len(class_names)))
+    target_class = parse_target_class(args.gradcam_target_class, class_names) if gradcam is not None else None
 
     print("Class labels:")
     for class_name in class_names:
         print(f"  {class_name}: {CLASS_DESCRIPTIONS.get(class_name, '')}")
 
-    with imageio.get_writer(output_video, fps=args.fps, codec="libx264", quality=8, macro_block_size=1) as writer:
+    standard_writer = None
+    gradcam_writer = None
+    writers = []
+    if save_standard_video:
+        standard_writer = imageio.get_writer(output_video, fps=args.fps, codec="libx264", quality=8, macro_block_size=1)
+        writers.append(standard_writer)
+    if gradcam_video is not None:
+        gradcam_writer = imageio.get_writer(gradcam_video, fps=args.fps, codec="libx264", quality=8, macro_block_size=1)
+        writers.append(gradcam_writer)
+
+    try:
         for index, image_path in enumerate(image_paths):
             image = Image.open(image_path).convert("RGB")
+            input_tensor = preprocess(image).unsqueeze(0).to(device)
+            display_image = display_transform(image)
             probabilities, pred_idx, pred_prob = predict(model, image, preprocess, device)
 
             top_probs, top_idx = torch.topk(probabilities, k=topk)
@@ -281,14 +332,51 @@ def main():
                 body_font=body_font,
                 class_font=class_font,
             )
-            writer.append_data(frame)
+            if standard_writer is not None:
+                standard_writer.append_data(frame)
 
-            print(
+            cam_label = None
+            if gradcam is not None and gradcam_writer is not None:
+                heatmap, _, cam_index = gradcam(input_tensor, target_class=target_class)
+                overlay_image = make_overlay(display_image, heatmap, args.gradcam_alpha)
+                cam_label = class_names[cam_index]
+                gradcam_frame = render_frame(
+                    image=overlay_image,
+                    image_path=image_path,
+                    index=index,
+                    total=len(image_paths),
+                    class_names=class_names,
+                    pred_idx=pred_idx,
+                    pred_prob=pred_prob,
+                    topk_pairs=topk_pairs,
+                    true_label=true_label,
+                    image_size=image_size,
+                    panel_width=args.panel_width,
+                    title_font=title_font,
+                    body_font=body_font,
+                    class_font=class_font,
+                    cam_target_class=cam_label,
+                    cam_target_desc=CLASS_DESCRIPTIONS.get(cam_label, ""),
+                )
+                gradcam_writer.append_data(gradcam_frame)
+
+            message = (
                 f"[{index + 1:03d}/{len(image_paths):03d}] {image_path} "
                 f"-> pred={class_names[pred_idx]} ({pred_prob:.3f})"
             )
+            if cam_label is not None and cam_label != class_names[pred_idx]:
+                message += f" | gradcam={cam_label}"
+            print(message)
+    finally:
+        for writer in writers:
+            writer.close()
+        if gradcam is not None:
+            gradcam.close()
 
-    print(f"Saved demo video to: {output_video}")
+    if standard_writer is not None:
+        print(f"Saved demo video to: {output_video}")
+    if gradcam_video is not None:
+        print(f"Saved Grad-CAM demo video to: {gradcam_video}")
 
 
 if __name__ == "__main__":
