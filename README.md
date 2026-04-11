@@ -112,6 +112,23 @@ By default, Grad-CAM is generated for the predicted class. To visualize a specif
 python gradcam_resnet50_baseline.py imgs/train/c0/img_100026.jpg --target-class c0
 ```
 
+### Demo Prediction Video
+
+- Script: `demo_video_resnet50_baseline.py`
+- Purpose: create a short `.mp4` showing per-image predictions, confidence, and (when available) ground-truth labels inferred from parent class folders (`c0`-`c9`).
+
+Create a short demo from test images:
+
+```bash
+python demo_video_resnet50_baseline.py --image-dir imgs/test --max-images 20 --fps 2
+```
+
+Create a labeled demo from train images (shows GT vs prediction match):
+
+```bash
+python demo_video_resnet50_baseline.py --image-dir imgs/train --max-images 20 --fps 2 --output-video outputs/resnet50_baseline/demo_train_labeled.mp4
+```
+
 ## Model Recommendations
 
 ### Primary Model
