@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 from torchvision import models, transforms
 
 from gradcam_resnet50_baseline import GradCAM, make_overlay, parse_target_class
+from demo_video_resnet50_baseline import init_detectors, detect_regions, RegionDetection
 
 
 CLASS_DESCRIPTIONS = {
@@ -116,6 +117,35 @@ def predict(model, image: Image.Image, preprocess, device):
     pred_idx = int(probabilities.argmax().item())
     pred_prob = float(probabilities[pred_idx].item())
     return probabilities, pred_idx, pred_prob
+
+
+def upsample_heatmap_to_original(heatmap_224, original_size):
+    orig_w, orig_h = original_size
+    padded = np.zeros((256, 256), dtype=np.float32)
+    padded[16:240, 16:240] = heatmap_224.astype(np.float32)
+    padded_uint8 = np.clip(padded * 255.0, 0, 255).astype(np.uint8)
+    resized = Image.fromarray(padded_uint8).resize((orig_w, orig_h), Image.Resampling.BILINEAR)
+    return np.asarray(resized, dtype=np.float32) / 255.0
+
+
+def overlay_detections_on_frame(frame_np, detections, image_w, image_h, orig_size):
+    if not detections:
+        return frame_np
+    frame = Image.fromarray(frame_np)
+    draw = ImageDraw.Draw(frame)
+    orig_w, orig_h = orig_size
+    scale_x = image_w / orig_w
+    scale_y = image_h / orig_h
+    label_font = load_font(16, bold=True)
+    for det in detections:
+        x1 = int(det.bbox[0] * scale_x)
+        y1 = int(det.bbox[1] * scale_y)
+        x2 = int(det.bbox[2] * scale_x)
+        y2 = int(det.bbox[3] * scale_y)
+        draw.rectangle([x1, y1, x2, y2], outline=det.color, width=det.line_width)
+        label_text = f"{det.label} {det.confidence:.0%}" if det.confidence > 0 else det.label
+        draw.text((x1, max(y1 - 18, 0)), label_text, font=label_font, fill=det.color)
+    return np.asarray(frame)
 
 
 def load_font(font_size: int, bold: bool = False):
@@ -255,6 +285,7 @@ def parse_args():
     parser.add_argument("--title-font-size", type=int, default=38, help="Title font size for panel text.")
     parser.add_argument("--body-font-size", type=int, default=27, help="Body font size for panel text.")
     parser.add_argument("--class-font-size", type=int, default=18, help="Font size for c0-c9 class list.")
+    parser.add_argument("--no-detect", action="store_true", help="Disable face/hand detection overlays on the Grad-CAM video.")
     return parser.parse_args()
 
 
@@ -278,6 +309,7 @@ def main():
     preprocess = build_preprocess()
     display_transform = build_display_transform()
     gradcam = GradCAM(model, model.layer4[-1]) if gradcam_video is not None else None
+    detectors = None if (gradcam is None or args.no_detect) else init_detectors()
 
     image_paths = collect_images(args.images, args.image_dir, args.max_images, args.seed)
     image_size = (args.width, args.height)
@@ -338,8 +370,14 @@ def main():
             cam_label = None
             if gradcam is not None and gradcam_writer is not None:
                 heatmap, _, cam_index = gradcam(input_tensor, target_class=target_class)
-                overlay_image = make_overlay(display_image, heatmap, args.gradcam_alpha)
+                full_heatmap = upsample_heatmap_to_original(heatmap, image.size)
+                overlay_image = make_overlay(image, full_heatmap, args.gradcam_alpha)
                 cam_label = class_names[cam_index]
+                detections = (
+                    detect_regions(image, detectors, pred_class=class_names[pred_idx])
+                    if detectors is not None
+                    else None
+                )
                 gradcam_frame = render_frame(
                     image=overlay_image,
                     image_path=image_path,
@@ -358,6 +396,9 @@ def main():
                     cam_target_class=cam_label,
                     cam_target_desc=CLASS_DESCRIPTIONS.get(cam_label, ""),
                 )
+                gradcam_frame = overlay_detections_on_frame(
+                    gradcam_frame, detections, args.width, args.height, image.size
+                )
                 gradcam_writer.append_data(gradcam_frame)
 
             message = (
@@ -372,6 +413,9 @@ def main():
             writer.close()
         if gradcam is not None:
             gradcam.close()
+        if detectors is not None:
+            detectors["face"].close()
+            detectors["hands"].close()
 
     if standard_writer is not None:
         print(f"Saved demo video to: {output_video}")
