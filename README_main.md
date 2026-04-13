@@ -7,7 +7,7 @@ EECS 504 Computer Vision course project on still-image distracted driver detecti
 
 This project studies whether a vision model can detect distracted driving behavior from a single image and which visual regions matter most for that decision. The implemented baseline uses full-image multiclass classification on the 10 distracted-driving classes, and Grad-CAM is used to verify whether the model attends to meaningful visual evidence.
 
-![Standard prediction demo — same 5 frames as the Grad-CAM + MediaPipe verification GIF below, rendered with no explainability overlays](./demo_standard.gif)
+![Standard prediction demo — same 5 frames as the Grad-CAM + MediaPipe verification GIF below, rendered with no explainability overlays](./demo_before_raw.gif)
 
 ## Methodology
 
