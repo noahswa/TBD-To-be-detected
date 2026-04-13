@@ -7,7 +7,7 @@ EECS 504 Computer Vision course project on still-image distracted driver detecti
 
 This project studies whether a vision model can detect distracted driving behavior from a single image and which visual regions matter most for that decision. The implemented baseline uses full-image multiclass classification on the 10 distracted-driving classes, and Grad-CAM is used to verify whether the model attends to meaningful visual evidence.
 
-![output_DEb8oT](https://github.com/user-attachments/assets/a963001a-8e6e-4d91-aabb-f2edf1384dbd)
+![Standard prediction demo — same 5 frames as the Grad-CAM + MediaPipe verification GIF below, rendered with no explainability overlays](./demo_before_raw.gif)
 
 ## Methodology
 
@@ -38,11 +38,13 @@ The implemented baseline uses a **ResNet-50 image classifier** trained on the 10
 6. **Explain predictions with Grad-CAM**
   - Visualize which regions of the image influence the prediction most.
   - This helps verify whether the model looks at the driver, hands, phone, or other relevant regions.
+  - Optionally overlay MediaPipe face and hand detections on top of the Grad-CAM heatmap as an independent verification layer, so the reviewer can visually check whether the model's attention aligns with semantically meaningful regions.
 
 7. **Create a video demo**
   - Render a short `.mp4` showing model predictions on multiple images.
   - Show the predicted class, confidence, top-k scores, and ground-truth label when available.
   - Optionally generate a second video with Grad-CAM overlays.
+  - Optionally generate a combined Grad-CAM + MediaPipe verification video where the heatmap is drawn on the full original image and face/hand/phone bounding boxes are drawn on top.
 
 ### Pipeline Summary
 
@@ -211,6 +213,57 @@ Create a labeled Grad-CAM demo from train images (shows GT vs prediction match p
 python demo_video_resnet50_baseline.py --image-dir imgs/train --max-images 20 --fps 2 --gradcam-video outputs/resnet50_baseline/demo_train_labeled_gradcam.mp4
 ```
 
+### Grad-CAM + MediaPipe Verification Video
+
+- Script: `demo_video_resnet50_baseline_gradcam.py`
+- Purpose: render a Grad-CAM video where the heatmap is overlaid on the **full original image** at its native resolution and MediaPipe face/hand detections (plus a `Phone?` heuristic box for the phone classes `c1`–`c4`) are drawn on top as an independent visual ground-truth layer. When the Grad-CAM hot region aligns with a detected hand, face, or phone box, that is a visual confirmation that the model is attending to the right region; when it does not, the frame is a failure case worth investigating.
+- Layout: same left-image / right-panel layout as the standard demo video, with the new detection overlays rendered directly on the image.
+- Default checkpoint: `outputs/resnet50_baseline/best_resnet50.pt`
+
+Generate only the combined Grad-CAM + MediaPipe verification video (the standard prediction video is not written when only `--gradcam-video` is passed):
+
+```bash
+python demo_video_resnet50_baseline_gradcam.py \
+  --image-dir imgs/train/c1 \
+  --max-images 5 \
+  --gradcam-video outputs/resnet50_baseline/demo_gradcam_combined.mp4
+```
+
+Generate the combined video alongside the unchanged standard prediction video:
+
+```bash
+python demo_video_resnet50_baseline_gradcam.py \
+  --image-dir imgs/train \
+  --max-images 20 \
+  --output-video outputs/resnet50_baseline/demo_prediction.mp4 \
+  --gradcam-video outputs/resnet50_baseline/demo_gradcam_combined.mp4
+```
+
+Disable the MediaPipe verification overlay (Grad-CAM heatmap only, no bounding boxes):
+
+```bash
+python demo_video_resnet50_baseline_gradcam.py \
+  --image-dir imgs/train/c1 \
+  --max-images 5 \
+  --gradcam-video outputs/resnet50_baseline/demo_gradcam_nodet.mp4 \
+  --no-detect
+```
+
+Sweep all 10 classes (5 images each) to visually verify Grad-CAM attention against MediaPipe detections across the full label set:
+
+```bash
+for c in c0 c1 c2 c3 c4 c5 c6 c7 c8 c9; do
+  python demo_video_resnet50_baseline_gradcam.py \
+    --image-dir imgs/train/$c \
+    --max-images 5 \
+    --gradcam-video outputs/resnet50_baseline/demo_gradcam_combined_$c.mp4
+done
+```
+
+Notes:
+- The phone-region heuristic box is gated on `PHONE_CLASSES = {c1, c2, c3, c4}`, so it only appears for phone-related predictions. For `c0` (normal driving) and `c5`–`c9`, expect only face and hand boxes.
+- The Grad-CAM heatmap is upsampled from the 7×7 `layer4` activation back to the original image resolution by inverting the model's `Resize(256) → CenterCrop(224)` pipeline, so pixels outside the model's crop receive a zero heatmap value and remain visually unchanged in the overlay.
+
 ## End-to-End Project Pipeline
 
 1. **Organize the dataset** into class folders `c0` to `c9`.
@@ -266,3 +319,9 @@ If successful, this project could inform the design of low-cost driver monitorin
 ## Team
 
 - Team name: **TBD: To Be Detected**
+
+## Example Output — Grad-CAM + MediaPipe Verification
+
+The animation below is generated by `demo_video_resnet50_baseline_gradcam.py` on the **same 5 sample frames** from `imgs/train/c1` (texting — right) used by the top-of-page GIF. The top GIF is the standard prediction demo with no explainability overlays (our "before"); this one is the processed version (our "after") where each frame shows the Grad-CAM heatmap overlaid on the full original image at native resolution, with MediaPipe face/hand detections and the `Phone?` heuristic box drawn on top as an independent verification layer.
+
+![Grad-CAM + MediaPipe verification demo](./demo_gradcam_combined.gif)
