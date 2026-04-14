@@ -2,6 +2,8 @@
 
 EECS 504 Computer Vision course project on still-image distracted driver detection using the State Farm Distracted Driver Detection dataset.
 
+## Dataset
+- [State Farm Distracted Driver Detection](https://www.kaggle.com/c/state-farm-distracted-driver-detection)
 
 ## Overview
 
