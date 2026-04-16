@@ -7,7 +7,7 @@ EECS 504 Computer Vision course project on still-image distracted driver detecti
 
 ## Overview
 
-This project studies whether a vision model can detect distracted driving behavior from a single image and which visual regions matter most for that decision. The implemented baseline uses full-image multiclass classification on the 10 distracted-driving classes, and Grad-CAM is used to verify whether the model attends to meaningful visual evidence.
+This project studies if a vision model can identify distracted driving behavior from a single image. It also explores which visual regions are most important for that decision. The baseline implemented uses full-image multiclass classification on the 10 distracted-driving classes. Grad-CAM verifies whether the model focuses on meaningful visual evidence.
 
 ![Standard prediction demo — same 5 frames as the Grad-CAM + MediaPipe verification GIF below, rendered with no explainability overlays](./demo_before_multiclass_raw.gif )
 
@@ -40,13 +40,13 @@ The implemented baseline uses a **ResNet-50 image classifier** trained on the 10
 6. **Explain predictions with Grad-CAM**
   - Visualize which regions of the image influence the prediction most.
   - This helps verify whether the model looks at the driver, hands, phone, or other relevant regions.
-  - Optionally overlay MediaPipe face and hand detections on top of the Grad-CAM heatmap as an independent verification layer, so the reviewer can visually check whether the model's attention aligns with semantically meaningful regions.
+  - Optionally, overlay MediaPipe face and hand detections on the Grad-CAM heatmap as a separate verification layer. This allows the reviewer to visually check if the model's attention matches semantically meaningful areas.
 
 7. **Create a video demo**
   - Render a short `.mp4` showing model predictions on multiple images.
   - Show the predicted class, confidence, top-k scores, and ground-truth label when available.
   - Optionally generate a second video with Grad-CAM overlays.
-  - Optionally generate a combined Grad-CAM + MediaPipe verification video where the heatmap is drawn on the full original image and face/hand/phone bounding boxes are drawn on top.
+  - Optionally create a combined Grad-CAM and MediaPipe verification video. The heatmap will be applied to the full original image, and face, hand, and phone bounding boxes will be added on top.
 
 ### Pipeline Summary
 
@@ -70,7 +70,7 @@ flowchart LR
 
 ## Motivation
 
-Distracted driving is a major safety issue that contributes to preventable traffic accidents. Our goal is to explore how computer vision can support safer driving through image-based driver monitoring while keeping the system interpretable enough to understand what visual cues the model is using.
+Distracted driving is a significant safety problem that leads to traffic accidents that could be avoided. Our aim is to examine how computer vision can help make driving safer through image-based driver monitoring. We also want to ensure the system is easy to understand, so we can learn what visual cues the model relies on.
 
 ## Dataset
 
@@ -151,6 +151,21 @@ python train_resnet50_baseline.py --epochs 8 --save-features outputs/resnet50_ba
 - **Validation split:** stratified random split by class
 - **Checkpoint selection:** best validation accuracy
 
+### Training Curves and Best-Metrics Table
+
+- Script: `plot_training_metrics.py`
+- Input: `outputs/resnet50_baseline/metrics.json`
+- Output:
+  - curves figure: `outputs/resnet50_baseline/training_curves.png`
+  - best-metrics table (Markdown): `outputs/resnet50_baseline/best_metrics.md`
+  - best-metrics summary (JSON): `outputs/resnet50_baseline/best_metrics.json`
+
+Generate plots and table for report:
+
+```bash
+python plot_training_metrics.py
+```
+
 ### Grad-CAM Visualization
 
 - Script: `gradcam_resnet50_baseline.py`
@@ -181,7 +196,7 @@ python gradcam_resnet50_baseline.py imgs/train/c0/img_100026.jpg --target-class 
 ### Demo Prediction Video
 
 - Script: `demo_video_resnet50_baseline.py`
-- Purpose: create a short `.mp4` showing per-image predictions, confidence, and (when available) ground-truth labels inferred from parent class folders (`c0`-`c9`). It can also generate a second `.mp4` with Grad-CAM overlays for the same sampled frames.
+- Purpose: create a short `.mp4` that shows per-image predictions, confidence, and, when available, ground-truth labels drawn from parent class folders (`c0`-`c9`). It can also create a second `.mp4` with Grad-CAM overlays for the same sampled frames.
 - Layout: the image is shown on the left, while labels and probabilities are shown in a separate right-side panel so the image stays visible.
 - Default sample count: 10 images.
 
@@ -218,7 +233,7 @@ python demo_video_resnet50_baseline.py --image-dir imgs/train --max-images 20 --
 ### Grad-CAM + MediaPipe Verification Video
 
 - Script: `demo_video_resnet50_baseline_gradcam.py`
-- Purpose: render a Grad-CAM video where the heatmap is overlaid on the **full original image** at its native resolution and MediaPipe face/hand detections (plus a `Phone?` heuristic box for the phone classes `c1`–`c4`) are drawn on top as an independent visual ground-truth layer. When the Grad-CAM hot region aligns with a detected hand, face, or phone box, that is a visual confirmation that the model is attending to the right region; when it does not, the frame is a failure case worth investigating.
+- Purpose: create a Grad-CAM video where the heatmap is overlaid on the full original image at its native resolution. MediaPipe face and hand detections, along with a Phone? heuristic box for the phone classes c1 to c4, are displayed as a separate visual ground-truth layer. When the Grad-CAM hot region aligns with a detected hand, face, or phone box, it confirms that the model is focusing on the correct area. When it does not align, the frame is a failure case that requires further investigation.
 - Layout: same left-image / right-panel layout as the standard demo video, with the new detection overlays rendered directly on the image.
 - Default checkpoint: `outputs/resnet50_baseline/best_resnet50.pt`
 
@@ -316,7 +331,7 @@ Notes:
 
 ## Positive Impact
 
-If successful, this project could inform the design of low-cost driver monitoring systems that detect distraction early and support safer driving. More broadly, it explores how interpretable computer vision tools can contribute to reducing preventable accidents caused by inattention.
+If successful, this project could help design low-cost driver monitoring systems that detect distraction early and support safer driving. It also looks at how clear computer vision tools can help reduce preventable accidents caused by inattention.
 
 ## Team
 

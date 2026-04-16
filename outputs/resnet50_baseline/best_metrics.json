@@ -1,0 +1,18 @@
+{
+  "best_train_loss": {
+    "value": 0.02189846391540175,
+    "epoch": 8
+  },
+  "best_val_loss": {
+    "value": 0.02371208009626721,
+    "epoch": 5
+  },
+  "best_train_acc": {
+    "value": 0.9933678871983503,
+    "epoch": 8
+  },
+  "best_val_acc": {
+    "value": 0.9944208881945994,
+    "epoch": 5
+  }
+}
