@@ -1,0 +1,267 @@
+{
+  "checkpoint": "outputs/resnet50_baseline/best_resnet50.pt",
+  "checkpoint_val_acc": 0.9944208881945994,
+  "target_layer": "layer4[-1]",
+  "summaries": [
+    {
+      "image": "imgs/test/img_1.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_1_gradcam_c5.jpg",
+      "target_class": "c5",
+      "target_description": "operating the radio",
+      "predicted_class": "c5",
+      "predicted_description": "operating the radio",
+      "predicted_probability": 0.9923589825630188,
+      "topk": [
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.9923589825630188
+        },
+        {
+          "class": "c3",
+          "description": "texting - left",
+          "probability": 0.007573029957711697
+        },
+        {
+          "class": "c1",
+          "description": "texting - right",
+          "probability": 1.5364832506747916e-05
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_10.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_10_gradcam_c5.jpg",
+      "target_class": "c5",
+      "target_description": "operating the radio",
+      "predicted_class": "c5",
+      "predicted_description": "operating the radio",
+      "predicted_probability": 0.9898602366447449,
+      "topk": [
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.9898602366447449
+        },
+        {
+          "class": "c0",
+          "description": "safe driving",
+          "probability": 0.005950320977717638
+        },
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.003333399537950754
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_100.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_100_gradcam_c0.jpg",
+      "target_class": "c0",
+      "target_description": "safe driving",
+      "predicted_class": "c0",
+      "predicted_description": "safe driving",
+      "predicted_probability": 0.9823952317237854,
+      "topk": [
+        {
+          "class": "c0",
+          "description": "safe driving",
+          "probability": 0.9823952317237854
+        },
+        {
+          "class": "c9",
+          "description": "talking to passenger",
+          "probability": 0.009934930130839348
+        },
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.005820171441882849
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_1000.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_1000_gradcam_c8.jpg",
+      "target_class": "c8",
+      "target_description": "hair and makeup",
+      "predicted_class": "c8",
+      "predicted_description": "hair and makeup",
+      "predicted_probability": 0.9992966651916504,
+      "topk": [
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.9992966651916504
+        },
+        {
+          "class": "c2",
+          "description": "talking on the phone - right",
+          "probability": 0.00034969334956258535
+        },
+        {
+          "class": "c9",
+          "description": "talking to passenger",
+          "probability": 0.00015937343414407223
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_100000.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_100000_gradcam_c3.jpg",
+      "target_class": "c3",
+      "target_description": "texting - left",
+      "predicted_class": "c3",
+      "predicted_description": "texting - left",
+      "predicted_probability": 0.9827510714530945,
+      "topk": [
+        {
+          "class": "c3",
+          "description": "texting - left",
+          "probability": 0.9827510714530945
+        },
+        {
+          "class": "c4",
+          "description": "talking on the phone - left",
+          "probability": 0.007393812295049429
+        },
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.004648768343031406
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_1.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_1_gradcam_c5.jpg",
+      "target_class": "c5",
+      "target_description": "operating the radio",
+      "predicted_class": "c5",
+      "predicted_description": "operating the radio",
+      "predicted_probability": 0.9923589825630188,
+      "topk": [
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.9923589825630188
+        },
+        {
+          "class": "c3",
+          "description": "texting - left",
+          "probability": 0.007573029957711697
+        },
+        {
+          "class": "c1",
+          "description": "texting - right",
+          "probability": 1.5364832506747916e-05
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_10.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_10_gradcam_c5.jpg",
+      "target_class": "c5",
+      "target_description": "operating the radio",
+      "predicted_class": "c5",
+      "predicted_description": "operating the radio",
+      "predicted_probability": 0.9898602366447449,
+      "topk": [
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.9898602366447449
+        },
+        {
+          "class": "c0",
+          "description": "safe driving",
+          "probability": 0.005950320977717638
+        },
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.003333399537950754
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_100.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_100_gradcam_c0.jpg",
+      "target_class": "c0",
+      "target_description": "safe driving",
+      "predicted_class": "c0",
+      "predicted_description": "safe driving",
+      "predicted_probability": 0.9823952317237854,
+      "topk": [
+        {
+          "class": "c0",
+          "description": "safe driving",
+          "probability": 0.9823952317237854
+        },
+        {
+          "class": "c9",
+          "description": "talking to passenger",
+          "probability": 0.009934930130839348
+        },
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.005820171441882849
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_1000.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_1000_gradcam_c8.jpg",
+      "target_class": "c8",
+      "target_description": "hair and makeup",
+      "predicted_class": "c8",
+      "predicted_description": "hair and makeup",
+      "predicted_probability": 0.9992966651916504,
+      "topk": [
+        {
+          "class": "c8",
+          "description": "hair and makeup",
+          "probability": 0.9992966651916504
+        },
+        {
+          "class": "c2",
+          "description": "talking on the phone - right",
+          "probability": 0.00034969334956258535
+        },
+        {
+          "class": "c9",
+          "description": "talking to passenger",
+          "probability": 0.00015937343414407223
+        }
+      ]
+    },
+    {
+      "image": "imgs/test/img_100000.jpg",
+      "output": "outputs/resnet50_baseline/gradcam/test_img_100000_gradcam_c3.jpg",
+      "target_class": "c3",
+      "target_description": "texting - left",
+      "predicted_class": "c3",
+      "predicted_description": "texting - left",
+      "predicted_probability": 0.9827510714530945,
+      "topk": [
+        {
+          "class": "c3",
+          "description": "texting - left",
+          "probability": 0.9827510714530945
+        },
+        {
+          "class": "c4",
+          "description": "talking on the phone - left",
+          "probability": 0.007393812295049429
+        },
+        {
+          "class": "c5",
+          "description": "operating the radio",
+          "probability": 0.004648768343031406
+        }
+      ]
+    }
+  ]
+}

@@ -106,6 +106,106 @@ The training set contains 10 classes (`c0` through `c9`). In this repository, th
 - Use Grad-CAM to visualize which regions contribute most to each prediction
 - Check whether the model focuses on the driver, hands, and phone instead of irrelevant background cues
 
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip (Python package manager)
+- Git (optional, for cloning the repository)
+
+### 1. Dataset Setup
+
+This project uses the **State Farm Distracted Driver Detection** dataset from Kaggle.
+
+#### Option A: Download from Kaggle (Recommended)
+
+1. **Create a Kaggle account:**
+   - Go to [kaggle.com](https://www.kaggle.com) and sign up if you don't have an account
+
+2. **Accept the competition terms:**
+   - Navigate to [State Farm Distracted Driver Detection](https://www.kaggle.com/c/state-farm-distracted-driver-detection)
+   - Accept the competition rules to gain access to download the dataset
+
+3. **Set up Kaggle API:**
+   ```bash
+   pip install kaggle
+   ```
+
+4. **Configure Kaggle credentials:**
+   - Go to your Kaggle Account Settings → API section
+   - Click "Create New API Token" (this downloads `kaggle.json`)
+   - Place `kaggle.json` in your home directory:
+     ```bash
+     mkdir -p ~/.kaggle
+     mv ~/Downloads/kaggle.json ~/.kaggle/
+     chmod 600 ~/.kaggle/kaggle.json
+     ```
+
+5. **Download the dataset:**
+   ```bash
+   kaggle competitions download -c state-farm-distracted-driver-detection
+   ```
+
+6. **Extract the dataset:**
+   ```bash
+   unzip state-farm-distracted-driver-detection.zip -d data/
+   ```
+
+#### Option B: Manual Download
+
+1. Visit the [competition page](https://www.kaggle.com/c/state-farm-distracted-driver-detection/data)
+2. Download `imgs.zip` and `driver_imgs_list.csv`
+3. Extract `imgs.zip` to the workspace root
+
+### 2. Organize Dataset
+
+Once downloaded, organize the images into class folders:
+
+1. **Create class directories:**
+   ```bash
+   mkdir -p imgs/train imgs/test
+   for i in {0..9}; do mkdir -p imgs/train/c$i; done
+   ```
+
+2. **Move training images:**
+   ```bash
+   # Assuming the downloaded data is in data/imgs/train/
+   cd data/imgs/train/
+   for dir in c0 c1 c2 c3 c4 c5 c6 c7 c8 c9; do
+     mv $dir ../../imgs/train/
+   done
+   cd ../../../
+   ```
+
+3. **Move test images:**
+   ```bash
+   # Assuming the downloaded data is in data/imgs/test/
+   cp -r data/imgs/test/* imgs/test/
+   ```
+
+### 3. Environment Setup
+
+1. **Create a Python virtual environment:**
+   ```bash
+   python -m venv .venv
+   ```
+
+2. **Activate the virtual environment:**
+   - **On Linux/macOS:**
+     ```bash
+     source .venv/bin/activate
+     ```
+   - **On Windows:**
+     ```bash
+     .venv\Scripts\activate
+     ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 ## ResNet-50 Baseline (Implemented)
 
 - Script: `train_resnet50_baseline.py`
@@ -116,25 +216,42 @@ The training set contains 10 classes (`c0` through `c9`). In this repository, th
 
 ### Quick Start
 
-1. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Run a short smoke test (fast sanity check):
+1. **Run a short smoke test** (fast sanity check, ~1 min):
 
 ```bash
 python train_resnet50_baseline.py --epochs 1 --batch-size 8 --num-workers 0 --max-train-batches 5 --max-val-batches 2
 ```
 
-3. Run full baseline training:
+2. **Run full baseline training** (~5-10 min on GPU):
 
 ```bash
 python train_resnet50_baseline.py --epochs 8 --batch-size 32
 ```
 
-4. Optional: export penultimate-layer features for all `imgs/train` images:
+3. **View training curves:**
+
+```bash
+python plot_training_metrics.py
+```
+   - Output: `outputs/resnet50_baseline/training_curves.png`
+
+4. **Generate Grad-CAM visualizations** (explained attention maps):
+
+```bash
+python gradcam_resnet50_baseline.py --image-dir imgs/test --max-images 5
+```
+   - Output: Grad-CAM heatmaps saved to `outputs/resnet50_baseline/gradcam/`
+
+5. **Create a demo video:**
+
+```bash
+python demo_video_resnet50_baseline.py --image-dir imgs/test --max-images 20 --fps 2
+```
+   - Output: `outputs/resnet50_baseline/demo_prediction.mp4`
+
+### Advanced Training Options
+
+Export penultimate-layer features for all training images:
 
 ```bash
 python train_resnet50_baseline.py --epochs 8 --save-features outputs/resnet50_baseline/train_features.npz
